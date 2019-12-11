@@ -7,12 +7,16 @@ class DataProcessing:
     def __init__(self, data_path):
         self.data_path = data_path
         # self.movies_col = np.array([])
-        self.num_folds = 5
+        self.num_batches = 5
         self.main_df = None
         # self.kf = KFold(n_splits=self.num_folds)
         # self.data = None
 
-    def preprocess_data(self, fold_num):
+    def get_batch(self, batch_num):
+        pivoted_df = pd.pivot_table(self.main_df[batch_num], values="Rating", index="User_ID", columns="Movie_ID")
+        return pivoted_df
+
+    def preprocess_data(self):
         self.main_df = pd.read_csv(self.data_path, names=["User_ID", "Rating", "Date"])
         # self.__get_movie_ratings()
 
@@ -26,13 +30,10 @@ class DataProcessing:
         self.__clean_data()
         print('After Trim Shape: {}'.format(self.main_df.shape))
 
-        dfs = self.kf.get_n_splits(self.main_df)
+        self.main_df = np.array_split(self.main_df, self.num_folds)
         # Pivoting Data
         # pivoted_df = pd.pivot_table(self.main_df, values="Rating", index="User_ID", columns="Movie_ID")
 
-        # print(comb_df.shape)
-
-        # print(comb_df.shape)
 
         return 0
 
