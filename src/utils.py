@@ -30,7 +30,7 @@ class DataProcessing:
         self.__clean_data()
         print('After Trim Shape: {}'.format(self.main_df.shape))
 
-        self.main_df = np.array_split(self.main_df, self.num_folds)
+        self.main_df = np.array_split(self.main_df, self.num_batches)
         # Pivoting Data
         # pivoted_df = pd.pivot_table(self.main_df, values="Rating", index="User_ID", columns="Movie_ID")
 
