@@ -1,20 +1,35 @@
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import KFold
+from sklearn.preprocessing import OneHotEncoder
+from sklearn import utils
+import scipy.sparse
+import scipy
 
 
 class DataProcessing:
-    def __init__(self, data_path):
+    def __init__(self, data_path, b_num=5):
         self.data_path = data_path
         # self.movies_col = np.array([])
-        self.num_batches = 5
+        self.num_batches = b_num
         self.main_df = None
+        self.main_df_arr = None
+        self.encoder = OneHotEncoder(categories='auto')
         # self.kf = KFold(n_splits=self.num_folds)
         # self.data = None
 
     def get_batch(self, batch_num):
-        pivoted_df = pd.pivot_table(self.main_df[batch_num], values="Rating", index="User_ID", columns="Movie_ID")
-        return pivoted_df
+        # TODO is reshape any good?
+        usr_mat = self.encoder.fit_transform(np.asarray(self.main_df_arr[batch_num]["User_ID"]).reshape(-1, 1))
+        mov_mat = self.encoder.fit_transform(np.asarray(self.main_df_arr[batch_num]["Movie_ID"]).reshape(-1, 1))
+        date_mat = self.encoder.fit_transform(np.asarray(self.main_df_arr[batch_num]["Date"]).reshape(-1, 1))
+
+        X = scipy.sparse.hstack([usr_mat, mov_mat, date_mat])
+        y = np.asarray(self.main_df_arr[batch_num]['Rating']).reshape(-1, 1)
+
+        X, y = utils.shuffle(X, y)
+
+        return X, y
 
     def preprocess_data(self):
         self.main_df = pd.read_csv(self.data_path, names=["User_ID", "Rating", "Date"])
@@ -30,12 +45,16 @@ class DataProcessing:
         self.__clean_data()
         print('After Trim Shape: {}'.format(self.main_df.shape))
 
-        self.main_df = np.array_split(self.main_df, self.num_batches)
-        # Pivoting Data
-        # pivoted_df = pd.pivot_table(self.main_df, values="Rating", index="User_ID", columns="Movie_ID")
-
+        self.main_df_arr = np.array_split(self.main_df, self.num_batches)
 
         return 0
+
+    def save_data(self, fname):
+        self.main_df.to_csv(fname)
+
+    def load_data(self, fname):
+        self.main_df = pd.read_csv(fname, index_col=0).drop_duplicates()
+        self.main_df_arr = np.array_split(self.main_df, self.num_batches)
 
     def __clean_data(self):
         f = ['count', 'mean']
@@ -59,7 +78,8 @@ class DataProcessing:
 
     def __get_movie_ratings(self):
         temp_movies_col = np.array([])
-        end_df = pd.DataFrame(np.array([["0:", None, None]]), columns=['User_ID', "Rating", "Date"])  # auxiliary appendix
+        end_df = pd.DataFrame(np.array([["0:", None, None]]),
+                              columns=['User_ID', "Rating", "Date"])  # auxiliary appendix
         dframe_aux = self.main_df.append(end_df, ignore_index=True)
         null_rat = [i + 1 for i, frame in enumerate(pd.isnull(dframe_aux.Rating)) if frame]
 
@@ -68,12 +88,9 @@ class DataProcessing:
 
         for i, curr_val in enumerate(null_rat):
             try:
-                temp_movies_col = np.append(temp_movies_col, np.full((1, null_rat[i+1] - curr_val - 1), i + 1))
+                temp_movies_col = np.append(temp_movies_col, np.full((1, null_rat[i + 1] - curr_val - 1), i + 1))
             except:
                 break
 
         movies_col = pd.DataFrame(temp_movies_col, columns=["Movie_ID"])
         return movies_col
-
-
-
