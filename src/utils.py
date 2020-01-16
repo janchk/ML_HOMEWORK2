@@ -1,35 +1,27 @@
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import KFold
 from sklearn.preprocessing import OneHotEncoder
+from sklearn.model_selection import KFold
 from sklearn import utils
 import scipy.sparse
 import scipy
 
 
 class DataProcessing:
-    def __init__(self, data_path, b_num=5):
+    def __init__(self, data_path):
         self.data_path = data_path
-        # self.movies_col = np.array([])
-        self.num_batches = b_num
         self.main_df = None
-        self.main_df_arr = None
         self.encoder = OneHotEncoder(categories='auto')
-        # self.kf = KFold(n_splits=self.num_folds)
-        # self.data = None
+        self.X = None
+        self.y = None
 
-    def get_batch(self, batch_num):
-        # TODO is reshape any good?
-        usr_mat = self.encoder.fit_transform(np.asarray(self.main_df_arr[batch_num]["User_ID"]).reshape(-1, 1))
-        mov_mat = self.encoder.fit_transform(np.asarray(self.main_df_arr[batch_num]["Movie_ID"]).reshape(-1, 1))
-        date_mat = self.encoder.fit_transform(np.asarray(self.main_df_arr[batch_num]["Date"]).reshape(-1, 1))
+    def get_batch(self, batch_size, X, y):
+        for i in range(0, y.shape[0], batch_size):
+            # X = self.X[i:i + batch_size, :]
+            X_b = X[i:i + batch_size, :]
+            y_b = y[i:i + batch_size, :]
 
-        X = scipy.sparse.hstack([usr_mat, mov_mat, date_mat])
-        y = np.asarray(self.main_df_arr[batch_num]['Rating']).reshape(-1, 1)
-
-        X, y = utils.shuffle(X, y)
-
-        return X, y
+            yield X_b, y_b
 
     def preprocess_data(self):
         self.main_df = pd.read_csv(self.data_path, names=["User_ID", "Rating", "Date"])
@@ -45,16 +37,37 @@ class DataProcessing:
         self.__clean_data()
         print('After Trim Shape: {}'.format(self.main_df.shape))
 
-        self.main_df_arr = np.array_split(self.main_df, self.num_batches)
-
-        return 0
+        self.__encode_data()
 
     def save_data(self, fname):
         self.main_df.to_csv(fname)
 
     def load_data(self, fname):
         self.main_df = pd.read_csv(fname, index_col=0).drop_duplicates()
-        self.main_df_arr = np.array_split(self.main_df, self.num_batches)
+        self.__encode_data()
+        # self.main_df_arr = np.array_split(self.main_df, self.num_batches)
+
+    def get_data_shape(self):
+        return self.X.shape
+
+    def get_fold(self, n_folds=5):
+        kf = KFold(n_splits=n_folds)
+        for train_index, test_index in kf.split(self.X):
+            X_train, X_test = self.X.tocsr()[train_index], self.X.tocsr()[test_index]
+            y_train, y_test = self.y[train_index], self.y[test_index]
+
+            yield (X_train, X_test), (y_train, y_test)
+
+        # pass
+
+    def __encode_data(self):
+        usr_mat = self.encoder.fit_transform(np.asarray(self.main_df["User_ID"]).reshape(-1, 1))
+        mov_mat = self.encoder.fit_transform(np.asarray(self.main_df["Movie_ID"]).reshape(-1, 1))
+        date_mat = self.encoder.fit_transform(np.asarray(self.main_df["Date"]).reshape(-1, 1))
+        self.X = scipy.sparse.hstack([usr_mat, mov_mat, date_mat])
+        self.y = np.asarray(self.main_df['Rating']).reshape(-1, 1)  # does not encode actually
+
+        self.main_df = None  # cleaning the mess
 
     def __clean_data(self):
         f = ['count', 'mean']
