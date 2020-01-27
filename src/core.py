@@ -1,5 +1,5 @@
 import numpy as np
-from stat_funcs import Statistics
+from .stat_funcs import Statistics
 
 mul = np.multiply
 
