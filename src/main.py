@@ -23,7 +23,6 @@ if __name__ == "__main__":
     for f_num, fold in enumerate(data_processor.get_fold(5)):
         print("fold number {}".format(f_num))
 
-        # tr_mse, tr_loss = 0, 0
         (X_train, X_test), (y_train, y_test) = fold
         fm.fit(data_shape, data_processor.get_batch(batch_size, X_train, y_train), 10)
 
@@ -31,5 +30,5 @@ if __name__ == "__main__":
         # Predict time
         y_pred = fm.predict(X_test)
         y_gt = y_test
-        r2, mse = fm.statistics.get_statistics(y_gt, y_pred)
-        print("TEST: MSE is: {}, R2 is: {}".format(mse, r2))
+        r2, rmse = fm.statistics.get_statistics(y_gt, y_pred)
+        print("TEST: RMSE is: {}".format(rmse))

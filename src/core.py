@@ -1,5 +1,8 @@
 import numpy as np
-from .stat_funcs import Statistics
+try:
+    from .stat_funcs import Statistics
+except ImportError:
+    from stat_funcs import Statistics
 
 mul = np.multiply
 
@@ -29,17 +32,17 @@ class FactorisationMachine:
         data = list(data_generator)
         for epoch in range(n_epoch):
             print(f"EPOCH : {epoch}")
-            mse, r2 = 0, 0
+            rmse, r2 = 0, 0
             batch_size = 0
             for i, batch in enumerate(data):
                 self.__fit(X=batch[0], y=batch[1],  lr=lr)
                 _stat = self.get_statistics()
-                mse += _stat[0]
+                rmse += _stat[0]
                 r2 += _stat[1]
                 # batch_size = batch[0].shape[0]
-            avg_mse = mse / i
+            avg_rmse = rmse / i
             avg_r2 = r2 / i
-            print(f"Average R2 :{avg_r2}\nAverage RMSE : {np.sqrt(avg_mse)} ")
+            print(f"Average R2 :{avg_r2}\nAverage MSE : {avg_rmse**2} ")
 
     def __fit(self, X, y, lr=0.001):
         self.X = X
@@ -119,5 +122,5 @@ class FactorisationMachine:
         # loss = np.mean(err ** 2)
         # print("Error is {}".format(err))
         _stat = self.statistics.get_statistics(y, y_pred)
-        print("MSE is :{}".format(_stat[1]))
+        print("MSE is :{}".format(_stat[1] ** 2))
         print("R2 is :{}".format(_stat[0]))
