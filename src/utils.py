@@ -34,7 +34,6 @@ class DataProcessing:
         self.main_df["Movie_ID"] = movies_df
 
         print('Original Shape: {}'.format(self.main_df.shape))
-        self.__clean_data()
         print('After Trim Shape: {}'.format(self.main_df.shape))
 
         self.__encode_data()
@@ -45,6 +44,7 @@ class DataProcessing:
     def load_data(self, fname):
         self.main_df = pd.read_csv(fname, index_col=0).drop_duplicates()
         self.__encode_data()
+        self.main_df = None  # cleaning the mess
         # self.main_df_arr = np.array_split(self.main_df, self.num_batches)
 
     def get_data_shape(self):
@@ -67,7 +67,6 @@ class DataProcessing:
         self.X = scipy.sparse.hstack([usr_mat, mov_mat, date_mat])
         self.y = np.asarray(self.main_df['Rating']).reshape(-1, 1)  # does not encode actually
 
-        self.main_df = None  # cleaning the mess
 
     def __clean_data(self):
         f = ['count', 'mean']

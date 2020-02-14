@@ -1,7 +1,7 @@
 from __future__ import print_function
 
-from utils import DataProcessing
-from core import FactorisationMachine
+from src.utils import DataProcessing
+from src.core import FactorisationMachine
 
 import os
 
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     data_shape = data_processor.get_data_shape()
 
     for f_num, fold in enumerate(data_processor.get_fold(5)):
-        print("fold number {}".format(f_num))
+        print(f"fold number {f_num}")
 
         # tr_mse, tr_loss = 0, 0
         (X_train, X_test), (y_train, y_test) = fold
@@ -32,4 +32,4 @@ if __name__ == "__main__":
         y_pred = fm.predict(X_test)
         y_gt = y_test
         r2, mse = fm.statistics.get_statistics(y_gt, y_pred)
-        print("TEST: MSE is: {}, R2 is: {}".format(mse, r2))
+        print(f"TEST: MSE is: {mse}, R2 is: {r2}")

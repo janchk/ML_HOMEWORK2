@@ -1,5 +1,6 @@
 import numpy as np
-from stat_funcs import Statistics
+from .stat_funcs import Statistics
+from tqdm import tqdm
 
 mul = np.multiply
 
@@ -27,8 +28,10 @@ class FactorisationMachine:
         self.v = np.full((data_shape[1], self.k), 0.5)
 
         data = list(data_generator)
-        for epoch in range(n_epoch):
-            print(f"EPOCH : {epoch}")
+        metrics = []
+
+        bar = tqdm(range(n_epoch), total=n_epoch)
+        for _ in bar:
             mse, r2 = 0, 0
             batch_size = 0
             for i, batch in enumerate(data):
@@ -36,10 +39,13 @@ class FactorisationMachine:
                 _stat = self.get_statistics()
                 mse += _stat[0]
                 r2 += _stat[1]
+                bar.set_description(f"Loss: {_stat[0]:.4f}")
                 # batch_size = batch[0].shape[0]
             avg_mse = mse / i
             avg_r2 = r2 / i
-            print(f"Average R2 :{avg_r2}\nAverage RMSE : {np.sqrt(avg_mse)} ")
+            metrics.append([avg_mse, avg_r2])
+            print(f"\nAverage R2 :{avg_r2}\nAverage MSE : {avg_mse} ")
+        return metrics
 
     def __fit(self, X, y, lr=0.001):
         self.X = X
