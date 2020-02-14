@@ -58,8 +58,6 @@ class DataProcessing:
 
             yield (X_train, X_test), (y_train, y_test)
 
-        # pass
-
     def __encode_data(self):
         usr_mat = self.encoder.fit_transform(np.asarray(self.main_df["User_ID"]).reshape(-1, 1))
         mov_mat = self.encoder.fit_transform(np.asarray(self.main_df["Movie_ID"]).reshape(-1, 1))
