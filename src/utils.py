@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import KFold
-from sklearn import utils
 import scipy.sparse
 import scipy
 
@@ -64,27 +63,6 @@ class DataProcessing:
         date_mat = self.encoder.fit_transform(np.asarray(self.main_df["Date"]).reshape(-1, 1))
         self.X = scipy.sparse.hstack([usr_mat, mov_mat, date_mat])
         self.y = np.asarray(self.main_df['Rating']).reshape(-1, 1)  # does not encode actually
-
-
-    def __clean_data(self):
-        f = ['count', 'mean']
-
-        df_movie_summary = self.main_df.groupby('Movie_ID')['Rating'].agg(f)
-        df_movie_summary.index = df_movie_summary.index.map(int)
-        movie_benchmark = round(df_movie_summary['count'].quantile(0.75), 0)
-        drop_movie_list = df_movie_summary[df_movie_summary['count'] < movie_benchmark].index
-
-        print('Movie minimum times of review: {}'.format(movie_benchmark))
-
-        df_user_summary = self.main_df.groupby('User_ID')['Rating'].agg(f)
-        df_user_summary.index = df_user_summary.index.map(int)
-        user_benchmark = round(df_user_summary['count'].quantile(0.75), 0)
-        drop_cust_list = df_user_summary[df_user_summary['count'] < user_benchmark].index
-
-        print('Customer minimum times of review: {}'.format(user_benchmark))
-
-        self.main_df = self.main_df[~self.main_df['Movie_ID'].isin(drop_movie_list)]
-        self.main_df = self.main_df[~self.main_df['User_ID'].isin(drop_cust_list)]
 
     def __get_movie_ratings(self):
         temp_movies_col = np.array([])

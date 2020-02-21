@@ -13,7 +13,7 @@ class FactorisationMachine:
         self.k = k
         self.X = None
         self.y = None
-        self.minibatch_num = 5
+        self.mb_size = 100
         self.verbose = False
         self.statistics = Statistics()
 
@@ -94,9 +94,10 @@ class FactorisationMachine:
         :param y:
         :return:
         """
-        batch_size = X.shape[0] // self.minibatch_num
-        X_mb = (X[i * batch_size: (i + 1) * batch_size, :] for i in (range(self.minibatch_num)))
-        y_mb = (y[i * batch_size: (i + 1) * batch_size, :] for i in (range(self.minibatch_num)))
+        # batch_size = X.shape[0] // self.minibatch_num
+        minibatch_num = X.shape[0] // self.mb_size
+        X_mb = (X[i * self.mb_size: (i + 1) * self.mb_size, :] for i in (range(minibatch_num)))
+        y_mb = (y[i * self.mb_size: (i + 1) * self.mb_size, :] for i in (range(minibatch_num)))
         return zip(X_mb, y_mb)
 
     def __fm_implementation(self, X):
