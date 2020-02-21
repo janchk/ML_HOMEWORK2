@@ -33,7 +33,6 @@ class DataProcessing:
         self.main_df["Movie_ID"] = movies_df
 
         print('Original Shape: {}'.format(self.main_df.shape))
-        print('After Trim Shape: {}'.format(self.main_df.shape))
 
         self.__encode_data()
 
