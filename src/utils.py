@@ -49,7 +49,7 @@ class DataProcessing:
         return self.X.shape
 
     def get_fold(self, n_folds=5):
-        kf = KFold(n_splits=n_folds)
+        kf = KFold(n_splits=n_folds, shuffle=True)
         for train_index, test_index in kf.split(self.X):
             X_train, X_test = self.X.tocsr()[train_index], self.X.tocsr()[test_index]
             y_train, y_test = self.y[train_index], self.y[test_index]
